@@ -1,0 +1,1 @@
+var tipuesearch = {"pages": [{'title': 'About', 'text': 'Github:  https://github.com/mdecycu/cad.git \n Pages:  https://mde.tw/mcad  ', 'tags': '', 'url': 'About.html'}]};
