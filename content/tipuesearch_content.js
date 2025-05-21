@@ -1,1 +1,1 @@
-var tipuesearch = {"pages": [{'title': 'About', 'text': 'Github:  https://github.com/mdecycu/cad.git \n Pages:  https://mde.tw/mcad  ', 'tags': '', 'url': 'About.html'}]};
+var tipuesearch = {"pages": [{'title': 'About', 'text': 'Github:  https://github.com/mdecycu/cad.git \n Pages:  https://mde.tw/mcad \n', 'tags': '', 'url': 'About.html'}, {'title': 'Readme', 'text': 'pygrouf 位於 downloads 目錄 \n flaskapp.py 利用 office 365 api 登入 \n app.py 利用 sqlite3 儲存資料 \n', 'tags': '', 'url': 'Readme.html'}]};

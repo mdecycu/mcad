@@ -11,11 +11,21 @@
 <v t="leo.20250520073858.3"><vh>@string initial_split_orientation = horizontal</vh></v>
 </v>
 <v t="leo.20250520073746.2"><vh>MCad project</vh></v>
-<v t="leo.20250520073928.1"><vh>importer</vh></v>
-<v t="leo.20250520074041.1"><vh>@path ./../</vh>
-<v t="leo.20250520074112.1"><vh>@clean config.py</vh></v>
+<v t="leo.20250521212548.1"><vh>README</vh>
+<v t="leo.20250521214249.1"><vh>sqlitebrowser</vh></v>
 </v>
+<v t="leo.20250521205157.1"><vh>https test</vh></v>
+<v t="leo.20250521205246.1"><vh>nginx.conf</vh></v>
+<v t="leo.20250520073928.1"><vh>importer</vh></v>
 <v t="leo.20250520074018.1"><vh>@clean flaskapp.py</vh></v>
+<v t="leo.20250521213635.1"><vh>@clean app.py</vh></v>
+<v t="leo.20250521212840.1"><vh>@edit schema.sql</vh></v>
+<v t="leo.20250521213009.1"><vh>@path templates</vh>
+<v t="leo.20250521213018.1"><vh>@edit index.html</vh></v>
+<v t="leo.20250521213315.1"><vh>@edit add.html</vh></v>
+<v t="leo.20250521213337.1"><vh>@edit update.html</vh></v>
+<v t="leo.20250521213417.1"><vh>@edit query.html</vh></v>
+</v>
 </vnodes>
 <tnodes>
 <t tx="leo.20250520073746.2">修課學員經由 @nfu.edu.tw 網域, 可利用"學號@nfu.edu.tw"經由 https://login.microsoftonline.com/ 登入 MS 365.
@@ -117,37 +127,25 @@ c.recursiveImport(
 <t tx="leo.20250520074018.1">from flask import Flask, redirect, request, session, url_for
 import requests
 import json
-  
+import sys
+import os
+
+# 導入上一個目錄中的 config.py
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import config
+
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # 用於 Flask session 的秘密金鑰
-  
-# 替換成你的 Azure AD 應用程式資訊
-'''
-取得 CLIENT_ID（應用程式 (用戶端) 識別碼）
- 
-    進入你的應用程式註冊細節頁面。
-    在「概觀」分頁中，找到「應用程式 (用戶端) 識別碼」（Application (client) ID）。
-    複製這個 GUID 字串，填入 CLIENT_ID = '這個字串'
- 
-建立 CLIENT_SECRET（用戶端密碼）
- 
-    在應用程式註冊的左側欄選單選擇「憑證與秘密」（Certificates &amp; secrets）。
-    點選「新增用戶端密碼」（New client secret）。
-    填寫描述與存續期限，按下「新增」。
-    建立後會出現一個「值」(Value)，這才是 CLIENT_SECRET，只會顯示一次，請立即複製起來，填入 CLIENT_SECRET = '這個值'
- 
-取得 TENANT_ID（目錄 (租用戶) 識別碼）
- 
-    同樣在「概觀」分頁中，找到「目錄 (租用戶) 識別碼」（Directory (tenant) ID）。
-    複製這個 GUID 字串，填入 TENANT_ID = '這個字串'
-'''
-CLIENT_ID = 'your_CLIENT_ID'
-CLIENT_SECRET = 'your_CLIENT_SECRET'
-TENANT_ID = 'your_TENANT_ID'
+
+# 從 config.py 讀取 Azure AD 應用程式資訊
+CLIENT_ID = config.CLIENT_ID
+CLIENT_SECRET = config.CLIENT_SECRET
+TENANT_ID = config.TENANT_ID
+REDIRECT_URI = config.REDIRECT_URI
+
 AUTHORITY = f'https://login.microsoftonline.com/{TENANT_ID}'
-REDIRECT_URI = 'https://35.cycu.org/callback'
 SCOPE = 'User.Read'
-  
+
 # 用於登錄和取得授權碼
 @app.route('/')
 def index():
@@ -158,7 +156,7 @@ def index():
                 f'&amp;response_mode=query'
                 f'&amp;scope={SCOPE}')
     return redirect(auth_url)
-  
+
 # 處理回調和交換授權碼
 @app.route('/callback')
 def callback():
@@ -177,14 +175,14 @@ def callback():
     tokens = token_r.json()
     session['access_token'] = tokens['access_token']
     return redirect(url_for('profile'))
-  
+
 # 使用訪問令牌呼叫 Microsoft Graph API 來獲取用戶資料
 @app.route('/profile')
 def profile():
     access_token = session.get('access_token')
     if not access_token:
         return redirect(url_for('index'))
-  
+
     headers = {
         'Authorization': f'Bearer {access_token}',
         'Content-Type': 'application/json'
@@ -193,7 +191,7 @@ def profile():
     graph_r = requests.get(graph_url, headers=headers)
     graph_r.raise_for_status()
     user_info = graph_r.json()
-    user_email = str(user_info["mail"])
+    user_email = str(user_info.get("mail") or user_info.get("userPrincipalName", ""))
     user_id = user_email.split("@")[0]
     session["user_id"] = user_id
     # 登出 MS Online 並重定向回首頁
@@ -202,12 +200,11 @@ def profile():
             f'&lt;script type="text/javascript"&gt;'
             f'  window.location = "https://login.microsoftonline.com/common/oauth2/v2.0/logout";'
             f'&lt;/script&gt;')
-  
+
 @app.route('/userid')
 def userid():
-    return session["user_id"]
-      
-  
+    return session.get("user_id", "")
+
 # 登出功能
 @app.route('/logout')
 def logout():
@@ -215,14 +212,118 @@ def logout():
     session.pop('access_token', None)
     # 重定向到 MS Online 登出 URL
     return redirect('https://login.microsoftonline.com/common/oauth2/v2.0/logout')
-  
+
+
+# 以下採 waitress http 執行, 並設法與 nginx 結合為 https
 if __name__ == '__main__':
+    from waitress import serve
+    serve(app, host='127.0.0.1', port=8080)
+</t>
+<t tx="leo.20250521205157.1">if __name__ == '__main__':
     context = (r'C:\Certbot\live\your_server_domain\cert.pem', r'C:\Certbot\live\your_server_domain\privkey.pem')
     app.run(debug=True, host='your_server_domain', port=443, ssl_context=context)</t>
-<t tx="leo.20250520074041.1"></t>
-<t tx="leo.20250520074112.1">CLIENT_ID = 'your_CLIENT_ID'
-CLIENT_SECRET = 'your_CLIENT_SECRET'
-TENANT_ID = 'your_TENANT_ID'
-REDIRECT_URI = 'https://your_server/callback'</t>
+<t tx="leo.20250521205246.1">nginx.conf 的 server 設定
+# for mcad waitress 8080 轉進 https 443
+    server {
+    listen       443 ssl;
+    server_name  35.mde.nfu.edu.tw;
+
+    ssl_certificate      C:/Certbot/live/35.mde.nfu.edu.tw/fullchain.pem;
+    ssl_certificate_key  C:/Certbot/live/35.mde.nfu.edu.tw/privkey.pem;
+
+    ssl_session_cache    shared:SSL:1m;
+    ssl_session_timeout  5m;
+
+    ssl_ciphers  HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers  on;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   html;
+    }
+}</t>
+<t tx="leo.20250521212548.1">執行 flaskapp.py 所需模組
+
+pip install flask sqlite3 waitress</t>
+<t tx="leo.20250521213009.1"></t>
+<t tx="leo.20250521213635.1">from flask import Flask, request, redirect, url_for, render_template
+import sqlite3
+  
+app = Flask(__name__)
+  
+DATABASE = 'database.db'
+  
+def get_db():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
+  
+def init_db():
+    with app.app_context():
+        db = get_db()
+        with open('schema.sql', 'r') as f:
+            db.executescript(f.read())
+        db.commit()
+  
+@app.route('/')
+def index():
+    return render_template('index.html')
+  
+@app.route('/add', methods=['GET', 'POST'])
+def add_user():
+    if request.method == 'POST':
+        student_id = request.form['student_id']
+        github_account = request.form['github_account']
+        notes = request.form.get('notes', '')
+  
+        db = get_db()
+        db.execute('INSERT INTO users (student_id, github_account, notes) VALUES (?, ?, ?)',
+                   (student_id, github_account, notes))
+        db.commit()
+        return redirect(url_for('index'))
+  
+    return render_template('add.html')
+  
+@app.route('/update/&lt;int:user_id&gt;', methods=['GET', 'POST'])
+def update_user(user_id):
+    db = get_db()
+    if request.method == 'POST':
+        student_id = request.form['student_id']
+        github_account = request.form['github_account']
+        notes = request.form.get('notes', '')
+  
+        db.execute('UPDATE users SET student_id = ?, github_account = ?, notes = ? WHERE id = ?',
+                   (student_id, github_account, notes, user_id))
+        db.commit()
+        return redirect(url_for('index'))
+  
+    user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    return render_template('update.html', user=user)
+  
+@app.route('/delete/&lt;int:user_id&gt;')
+def delete_user(user_id):
+    db = get_db()
+    db.execute('DELETE FROM users WHERE id = ?', (user_id,))
+    db.commit()
+    return redirect(url_for('index'))
+  
+@app.route('/query')
+def query_users():
+    db = get_db()
+    users = db.execute('SELECT * FROM users').fetchall()
+    return render_template('query.html', users=users)
+  
+if __name__ == '__main__':
+    init_db()
+    app.run(debug=True)</t>
+<t tx="leo.20250521214249.1">https://github.com/sqlitebrowser/sqlitebrowser/releases/tag/v3.13.1</t>
 </tnodes>
 </leo_file>

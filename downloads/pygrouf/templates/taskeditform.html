@@ -1,0 +1,102 @@
+##encoding: utf-8
+## 取得 user 與 title 等兩個變數資料
+## 兩個 pound signs 在 Mako 語法中為註解行
+## 多行註解則使用
+<%doc>
+    這是註解
+    使用 <%! %> 表示在模組層次運作的 Python 程式碼, 可以用來 import 模組或定義相關的函式或物件
+</%doc>
+<%!
+import cgi
+%>
+<html>
+        <head>
+                <title>Pygroup 任務編輯表單</title>
+<script type="text/javascript" src="/static/syntaxhighlighter/shCore.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/shBrushJScript.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/shBrushJava.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/shBrushPython.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/shBrushSql.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/shBrushXml.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/shBrushPhp.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/shBrushCpp.js"></script>
+<script type="text/javascript" src="/static/syntaxhighlighter/shBrushCss.js"></script>
+<link type="text/css" rel="stylesheet" href="/static/syntaxhighlighter/css/shCoreDefault.css"/>
+<script type="text/javascript">SyntaxHighlighter.all();</script>
+<script src="//cdn.tinymce.com/4/tinymce.min.js"></script>
+<script src="/static/tinymce4/tinymce/plugins/sh4tinymce/plugin.min.js"></script>
+<link rel = "stylesheet" href = "/static/tinymce4/tinymce/plugins/sh4tinymce/style/style.css">
+<script>
+tinymce.init({
+  selector: "textarea",
+  height: 500,
+  element_format : "xhtml",
+  language : "en",
+  plugins: [
+    'advlist autolink lists link image charmap print preview hr anchor pagebreak',
+    'searchreplace wordcount visualblocks visualchars code fullscreen',
+    'insertdatetime media nonbreaking save table contextmenu directionality',
+    'emoticons template paste textcolor colorpicker textpattern imagetools sh4tinymce'
+  ],
+  toolbar1: 'insertfile save undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent',
+  toolbar2: 'link image | print preview media | forecolor backcolor emoticons | code sh4tinymce',
+  relative_urls: false,
+  toolbar_items_size: 'small',
+  file_picker_callback: function(callback, value, meta) {
+        cmsFilePicker(callback, value, meta);
+    },
+  templates: [
+    { title: 'Test template 1', content: 'Test 1' },
+    { title: 'Test template 2', content: 'Test 2' }
+  ],
+  content_css: [
+    '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+    '//www.tinymce.com/css/codepen.min.css'
+  ]
+});
+
+function cmsFilePicker(callback, value, meta) {
+    tinymce.activeEditor.windowManager.open({
+        title: 'Uploaded File Browser',
+        url: '/file_selector?type=' + meta.filetype,
+        width: 800,
+        height: 550,
+    }, {
+        oninsert: function (url, objVals) {
+            callback(url, objVals);
+        }
+    });
+};
+</script>
+</head><body>
+<style type="text/css" media="all">
+@import "/templates/style/base.css";
+</style>
+<%
+# 這裡再加上表單
+outstring = "<a href='/'>Go to main page</a> (<a href='/?desc=1'>最新在前</a>) (<a href='/?flat=1'>flat</a> (<a href='/?flat=1&desc=1'>flat 最新在前</a>))"
+# 假如 user 非 anonymou 則列出 logout 連結
+if user != "anonymous":
+    outstring += " <a href='logout'>Logout</a> "
+if user == "anonymous":
+    outstring += " <a href='login'>Login</a> "
+if user == "admin":
+    outstring += " <a href='editconfigform'>Config</a> <a href='editadsenseform'>Adsense Config</a>"
+outstring += "<br /><br />使用者:"+user+"<br /><br />"
+if id != 0:
+    outstring += "以下將編輯 id="+str(id)+" 的資料<br /><br />"
+outstring += '''
+<form method='post' action='taskedit'>
+tasktype:<input type='type' name='type' value="'''+data.type+'''"><br />
+taskname:<input type='name' name='name' value="'''+data.name+'''"><br />
+'''
+outstring += "taskcontent:<br /><textarea class='simply-editor' name='content' cols='50' rows='10'>"+cgi.escape(data.content)+"</textarea><br />"
+outstring += '''
+<input type='hidden' name='id' value="'''+str(data.id)+'''">
+<input type='submit' value='edit'>
+</form>
+'''
+%>
+${outstring}
+
+

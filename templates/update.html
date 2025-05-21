@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update User</title>
+</head>
+<body>
+    <h1>Update User</h1>
+    <form action="{{ url_for('update_user', user_id=user['id']) }}" method="post">
+        <label for="student_id">Student ID:</label>
+        <input type="text" id="student_id" name="student_id" value="{{ user['student_id'] }}" required><br>
+        <label for="github_account">GitHub Account:</label>
+        <input type="text" id="github_account" name="github_account" value="{{ user['github_account'] }}" required><br>
+        <label for="notes">Notes:</label>
+        <textarea id="notes" name="notes">{{ user['notes'] }}</textarea><br>
+        <input type="submit" value="Update">
+    </form>
+    <a href="{{ url_for('index') }}">Back</a>
+</body>
+</html>

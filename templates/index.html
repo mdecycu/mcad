@@ -1,8 +1,11 @@
-{# index.html #}
-{% extends "base.html" %}
-
-{% block body %}
-
-Hello, World, from {{ user }}.
-
-{% endblock %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Index</title>
+</head>
+<body>
+    <h1>Welcome to User Management</h1>
+    <a href="{{ url_for('add_user') }}">Add User</a> |
+    <a href="{{ url_for('query_users') }}">Query Users</a>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Query Users</title>
+</head>
+<body>
+    <h1>Users</h1>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Student ID</th>
+            <th>GitHub Account</th>
+            <th>Notes</th>
+            <th>Actions</th>
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user['id'] }}</td>
+            <td>{{ user['student_id'] }}</td>
+            <td>{{ user['github_account'] }}</td>
+            <td>{{ user['notes'] }}</td>
+            <td>
+                <a href="{{ url_for('update_user', user_id=user['id']) }}">Update</a> |
+                <a href="{{ url_for('delete_user', user_id=user['id']) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{{ url_for('index') }}">Back</a>
+</body>
+</html>
